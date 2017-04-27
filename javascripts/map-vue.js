@@ -134,11 +134,7 @@ var app = new Vue({
             }
         },
         collapseIn:function () {
-            for(var i = 0;i<app.items.length-1; i++){
-                var target = $('#path' + (i+1));
-                target.addClass("in");
-
-            }
+            $('.panel-collapse').collapse('show');
         }
     }
 });
