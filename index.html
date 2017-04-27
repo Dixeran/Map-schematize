@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Map-schematize</title>
+    <link rel="stylesheet" href="stylesheets/map-style.css">
+    <!--<link rel="stylesheet" href="//cdn.bootcss.com/zui/1.6.0/css/zui.min.css">-->
+    <link rel="stylesheet" href="stylesheets/zui.css">
+    <link rel="stylesheet" href="//cdn.bootcss.com/flatpickr/2.5.1/flatpickr.min.css">
+</head>
+<body>
+    <!-- 地图容器 -->
+    <div id="map-container"></div>
+
+    <!-- 侧栏容器 -->
+    <div id="right-panel">
+
+        <!-- 导航栏 -->
+        <ul class="nav nav-secondary">
+            <li v-bind:class="{ active: router == 1 }"><a href="#" v-on:click="router = 1">节点</a></li>
+            <li v-bind:class="{ active: router == 2 }"><a href="#" v-on:click="router = 2">路径</a></li>
+            <li v-bind:class="{ active: router == 3 }"><a href="#" v-on:click="router = 3">关于</a></li>
+            <li><a href="#" data-toggle="modal" data-target="#tableList" data-position="50">表单</a></li>
+            <li><a href="#" data-toggle="modal" data-target="#file">导入/导出</a></li>
+        </ul>
+
+        <!-- 浏览器警示 -->
+        <div class="alert alert-danger-inverse alert-dismissable" v-if="nonChrome">
+            <h4>是否在使用非Chrome浏览器？</h4>
+            <p>使用非Chrome浏览器（或与其相同内核浏览器）将导致不可预测的问题</p>
+        </div>
+        <!-- nodes 模块容器-->
+        <transition name="fade">
+        <div class="nodeTab-container scrollbar-hover" v-show="router == 1">
+            <!-- 存放基础信息容器 -->
+            <div class="panel" id="basic-information">
+                <div class="panel-heading">基本项</div>
+                <div id="basic-info-list" class="list-group">
+                    <a class="list-group-item" >
+                        <h5 id="city" class="list-group-item-heading">目标城市：</h5>
+                        <span class="list-group-item-text">{{ city }}</span>
+                        <div id="search-city-container" class="input-group" style="display: none">
+                            <input id="search-city" type="search" class="form-control" placeholder="city">
+                            <span class="input-group-btn">
+                                <button id="search-city-btn" class="btn btn-default" type="button"><span class="icon-location-arrow"></span></button>
+                            </span>
+                        </div>
+                    </a>
+                    <div class="alert alert-warning-inverse" v-show=" code == '' ">
+                        <h4>请先确定需要出行的城市</h4>
+                        <p>上海市请搜索某个区域（例如松江区）</p>
+                    </div>
+
+                    <a class="list-group-item" id="date">
+                        <h5  class="list-group-item-heading">出行日期：</h5>
+                        <p class="list-group-item-text">{{ date }}</p>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 存放节点列表容器 -->
+            <div class="panel">
+                <div class="panel-heading">节点列表</div>
+                <!-- 搜索框 -->
+                <input id="search-node" type="search" class="form-control">
+
+                <!--保存按钮-->
+                <a href="#" class="btn btn-primary btn-block" id="save-btn">显示路径</a>
+
+                <!-- 节点列表 -->
+                <div id="nodes" class="list-group">
+                    <template v-for="item in items">
+                        <div v-bind:index="item.index" v-on:mouseover="showCircle(item)" v-on:mouseout="hideCircle">
+                            <a v-bind:href="'http://ditu.amap.com/detail/' + item.id" target="_blank" class="list-group-item">
+                                <span class="label label-info">{{ item.index + 1 }}</span> {{item.name}}</a>
+                            <div class="btn-group">
+                                <button class="btn btn-mini">在地图中查看</button>
+                                <button class="btn btn-mini btn-danger" v-on:click="deleteNode(item)">删除</button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+        </transition>
+
+        <!-- path 模块容器 -->
+        <transition name="fade">
+        <div class="pathTab-container scrollbar-hover" v-show="router == 2" id="pathContainer">
+            <div class="alert alert-warning-inverse" v-show=" items.length < 2 ">
+                <h4>请先添加两个或更多的节点</h4>
+                <p>没有节点无法进行算路噢</p>
+            </div>
+
+            <div class="btn-group" v-if=" items.length > 1" style="display: block">
+                <button class="btn btn-primary" v-on:click="getPath" style="width: 50%">计算路线</button>
+                <button class="btn" v-on:click="collapseIn" style="width: 50%">展开全部</button>
+            </div>
+            <button v-if=" items.length > 1" class="btn btn-info btn-block" v-on:click="renderMap"
+                    data-toggle="tooltip" data-placement="left" title="先在右侧面板中展开需要截图的内容，点击“生成长截图”之后，请在一段时间内不要操作右侧面板，
+                    长截图生成完毕将在新标签页中打开，届时
+                    你可以选择“图片另存为”的方式保存生成的图片。有生成图片不完整的情况请尝试重新生成">生成长截图</button>
+            <!-- 两两节点之间路径列表 -->
+            <div class="panel-group" v-if=" items.length > 1" id="paths">
+                <template v-for="n in (items.length-1)">
+                    <div class="panel">
+                        <div class="panel-heading" data-toggle="collapse"  v-bind:href="'#path' + n ">
+                            <span class="label label-primary">起</span>{{ items[n - 1].name }}
+                        </div>
+                        <div class="panel-heading">
+                            <label class="radio-inline">
+                                <input type="radio" value="Transfer" v-bind:name="'pathMethod' + n" v-model="items[n-1].method">公交
+                            </label>
+
+                            <label class="radio-inline">
+                                <input type="radio" value="Walking" v-bind:name="'pathMethod' + n" v-model="items[n-1].method">步行
+                            </label>
+
+                            <!--
+                            <label class="radio-inline">
+                                <input type="radio" value="Riding" v-bind:name="'pathMethod' + n" v-model="items[n-1].method">骑行
+                            </label>
+                            -->
+
+                            <label class="radio-inline">
+                                <input type="radio" value="Driving" v-bind:name="'pathMethod' + n" v-model="items[n-1].method">驾车
+                            </label>
+                        </div>
+                        <div class="panel-body panel-collapse collapse" v-bind:id=" 'path'  + n "></div>
+                        <div class="panel-footer"><span class="label label-danger">终</span>{{ items[ n ].name }}</div>
+                    </div>
+                </template>
+            </div>
+        </div>
+        </transition>
+
+        <!-- about信息容器 -->
+        <transition name="fade">
+        <div class="aboutTab-container" v-show="router == 3">
+            <div class="card">
+                <img src="aboutIMG.jpg" alt="关于">
+                <div class="card-content">
+                    <h2>关于:</h2>
+                    <h4>用Map-schematize规划你出行的路线</h4>
+                    <p>作者: Dixeran</p>
+                    <p>支持多段路程的混合出行方式算路，给出单个城市内整体流程的出行计划</p>
+                    <p>基于高德开放平台API，感谢以下开源库/框架：</p>
+                    <p><code>Vue2.x; jQuery; Z UI; sortableJS; Flatpickr; html2canvas; FileSaver</code></p>
+                </div>
+            </div>
+        </div>
+        </transition>
+
+        <!-- 送签单modal -->
+        <div class="modal fade" id="tableList">
+            <div class="modal-dialog modal-lg scrollbar-hover">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span class="icon-remove"></span></button>
+                    <h3>日程表</h3>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-hover">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>景点</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <template v-for="item in items">
+                            <tr>
+                                <td>{{item.index + 1}}</td>
+                                <td>
+                                    <p><h4>{{item.name}}</h4></p>
+                                    <div>
+                                        <span class="label label-primary">{{item.address}}</span>
+                                        <span class="label label-info">{{item.type}}</span>
+                                        <div v-if="item.deep_type == 'SCENIC' ">
+                                            <span class="label label-circle" v-if="item.scenic.rating">评分：{{item.scenic.rating}}</span>
+                                            <p v-if="item.scenic.price">门票：{{ item.scenic.price}} RMB</p>
+                                            <p v-if="item.scenic.opentime">营业时间：{{item.scenic.opentime}}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 长截图生成画布 -->
+    <canvas id="image"></canvas>
+
+    <!-- 导入导出modal -->
+    <div class="modal fade" id="file">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span class="icon-remove"></span></button>
+                <h3>导入/导出数据</h3>
+            </div>
+            <div class="modal-body">
+                <div class="card">
+                    <div class="card-heading"><h4>从文件导入数据</h4></div>
+                    <div class="card-content">
+                        <input type="file" class="form-control" id="upload" accept="application/json">
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-heading"><h4>导出数据到文件</h4></div>
+                    <div class="card-content">
+                        <button class="btn btn-primary" id="download" v-on:click="outPut">导出文件</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script src="javascripts/Sortable.min.js"></script>
+    <script src="//cdn.bootcss.com/vue/2.2.6/vue.min.js"></script>
+    <!--<script src="javascripts/vue.js"></script>-->
+    <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="//cdn.bootcss.com/zui/1.6.0/js/zui.min.js"></script>
+    <script type="text/javascript" src="https://webapi.amap.com/maps?v=1.3&key=b8b286b57b891b2e0b592575695c6b98"></script>
+    <script type="text/javascript" src="https://webapi.amap.com/ui/1.0/main.js"></script>
+    <script type="text/javascript" src="javascripts/map-data.js"></script>
+    <script type="text/javascript" src="javascripts/map-main.js"></script>
+    <script type="text/javascript" src="javascripts/map-vue.js"></script>
+    <script src="//cdn.bootcss.com/flatpickr/2.5.1/flatpickr.min.js"></script>
+    <script src="//cdn.bootcss.com/html2canvas/0.5.0-beta4/html2canvas.min.js"></script>
+    <script src="javascripts/FileSaver.js"></script>
+</body>
+</html>
