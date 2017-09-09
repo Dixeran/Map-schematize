@@ -5,9 +5,12 @@
 var app = new Vue({
     el:'#right-panel',
     data:{
+        CurrentDay:1,
+        Days:1,
         city:'',
         code:'',
         date:'',
+        dateObj:0,
         nonChrome: '',
         router: 1,
         items:[
@@ -135,6 +138,30 @@ var app = new Vue({
         },
         collapseIn:function () {
             $('.panel-collapse').collapse('show');
+        },
+        addDay:function () {
+            app.Days++;
+            saveToCookie(app.CurrentDay);
+            var cache = JSON.parse($.cookie('cache'));
+            cache.push([]);
+            $.cookie('cache', JSON.stringify(cache), {expires:7})
+        },
+        deleteDay:function () {
+            if(app.Days > 1){
+                if($.cookie('cache')){
+                    var cache = JSON.parse($.cookie('cache'));
+                    cache.splice(app.CurrentDay + 2, 1);
+                    $.cookie('cache', JSON.stringify(cache), {expires: 7});
+                }
+                --app.Days;
+                app.CurrentDay == 1 ? console.log() : app.CurrentDay--;
+                loadFromCookie(app.CurrentDay);
+            }
+        },
+        switchToDay:function (n) {
+            nodesLine.hide();
+            saveToCookie(app.CurrentDay);
+            loadFromCookie(n);
         }
     }
 });
