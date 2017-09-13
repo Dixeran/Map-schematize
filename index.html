@@ -20,7 +20,7 @@
             <li v-bind:class="{ active: router == 1 }"><a href="#" v-on:click="router = 1">节点</a></li>
             <li v-bind:class="{ active: router == 2 }"><a href="#" v-on:click="router = 2">路径</a></li>
             <li v-bind:class="{ active: router == 3 }"><a href="#" v-on:click="router = 3">关于</a></li>
-            <li><a href="#" data-toggle="modal" data-target="#tableList" data-position="50">表单</a></li>
+            <li><a href="#" v-on:click="switchToPrint()">表单</a></li>
             <li><a href="#" data-toggle="modal" data-target="#file">导入/导出</a></li>
             <li>
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">第{{CurrentDay}}天<span class="caret"></span></a>
@@ -30,7 +30,7 @@
                     </li>
                     <li>
                         <a href="#" v-on:click="addDay()"><i class="icon icon-plus"></i>增加一天</a>
-                        <a href="#" v-on:click="deleteDay()"><i class="icon icon-minus"></i>删除当天</a>
+                        <a href="#" v-on:click="deleteDay()" style="background-color: #ff767a"><i class="icon icon-minus"></i>删除当天</a>
                     </li>
                 </ul>
             </li>
@@ -229,8 +229,6 @@
             </div>
         </div>
     </div>
-
-
 
     <script src="javascripts/Sortable.min.js"></script>
     <script src="//cdn.bootcss.com/vue/2.2.6/vue.min.js"></script>

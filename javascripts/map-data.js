@@ -404,18 +404,14 @@ function loadFromCookie(day) {
             city:app.code,
             extensions:'all'
         });//根据文件得到的地址编码获取更详细的信息
-        var cache = [];
-        for(var i = 0; i<list[day + 2].length; i++){
+        //var cache = [];
+
+        /*for(var i = 0; i<list[day + 2].length; i++){
             searchDetail.getDetails(list[day + 2][i], function (status, result) {
                 cache.push(result.poiList.pois[0]);
                 console.log(result.poiList.pois[0].id);
             });
-        }
-        var message = new $.zui.Messager('正在导入', {
-            type: 'info',
-            placement: 'center'
-        });
-        message.show();
+        }*/
 
         //清空原有信息
         app.items.splice(0, app.items.length);
@@ -424,12 +420,25 @@ function loadFromCookie(day) {
         }
         app.paths.splice(0, app.paths.length);
         for(var t = 0; t<app.markers.length; t++){
-            app.markers[t].hide();//清除已有的路线
+            app.markers[t].hide();//清除已有的标记
         }
         app.markers.splice(0, app.markers.length);
+        nodesLine.hide();
+        nodesCircle.hide();
+        console.log("clear");
+
+        var message = new $.zui.Messager('正在导入', {
+            type: 'info',
+            placement: 'center'
+        });
+        message.show();
+
+        /*重构后使用了Generator构造异步的方法，不需要手动设定延迟*/
+        let gre = SearchDetail();
+        gre.next();
 
         /*搜索详细信息的返回不按顺序，所以要得到所有结果以后进行一次重整*/
-        setTimeout(function () {
+        /*setTimeout(function () {
             for(var t = 0; t<list[day + 2].length; t++){
                 for(var k = 0; k<cache.length; k++){
                     if(list[day + 2][t] == cache[k].id){
@@ -444,7 +453,27 @@ function loadFromCookie(day) {
                 }
             }
             message.hide();
-            map.setFitView();
-        }, 2000);
+        }, 2000);*/
+
+        function * SearchDetail() {
+            for(var i = 0; i<list[day + 2].length; i++){
+                yield _SearchDetail(i)
+            }
+            message.hide();
+        }
+
+        function _SearchDetail(index){
+            searchDetail.getDetails(list[day + 2][index], function (status, result) {
+                let cache = result.poiList.pois[0];
+                cache.index = app.items.length;
+                cache.method = 'Transfer';
+                addMarker(cache);
+                app.items.push(cache);
+                setCircle();
+                setPath();
+                console.log(cache.id);
+                gre.next();
+            });
+        }
     }
 }

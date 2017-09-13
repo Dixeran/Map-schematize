@@ -22,7 +22,7 @@ var app = new Vue({
         paths:[
 
         ],
-        color:[ '#D2527F', '#27AE60', '#2C3E50', '#E67E22', '#87D37C', '#F1C40F', '#E26A6A', '#16A085',
+        color:['#D2527F', '#27AE60', '#2C3E50', '#E67E22', '#87D37C', '#F1C40F', '#E26A6A', '#16A085',
         '#1ABC9C', '#8E44AD', '#019875','#9B59B6', '#2ECC71', '#D35400', '#F39C12', '#34495E']
     },
     methods:{
@@ -162,6 +162,9 @@ var app = new Vue({
             nodesLine.hide();
             saveToCookie(app.CurrentDay);
             loadFromCookie(n);
+        },
+        switchToPrint:function () {
+            window.open("PrintFile.html", "PrintFile",'location=no,menubar=no,toolbar=no');
         }
     }
 });
