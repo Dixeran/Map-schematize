@@ -5,9 +5,12 @@
 var app = new Vue({
     el:'#right-panel',
     data:{
+        CurrentDay:1,
+        Days:1,
         city:'',
         code:'',
         date:'',
+        dateObj:0,
         nonChrome: '',
         router: 1,
         items:[
@@ -19,7 +22,7 @@ var app = new Vue({
         paths:[
 
         ],
-        color:[ '#D2527F', '#27AE60', '#2C3E50', '#E67E22', '#87D37C', '#F1C40F', '#E26A6A', '#16A085',
+        color:['#D2527F', '#27AE60', '#2C3E50', '#E67E22', '#87D37C', '#F1C40F', '#E26A6A', '#16A085',
         '#1ABC9C', '#8E44AD', '#019875','#9B59B6', '#2ECC71', '#D35400', '#F39C12', '#34495E']
     },
     methods:{
@@ -135,6 +138,33 @@ var app = new Vue({
         },
         collapseIn:function () {
             $('.panel-collapse').collapse('show');
+        },
+        addDay:function () {
+            app.Days++;
+            saveToCookie(app.CurrentDay);
+            var cache = JSON.parse($.cookie('cache'));
+            cache.push([]);
+            $.cookie('cache', JSON.stringify(cache), {expires:7})
+        },
+        deleteDay:function () {
+            if(app.Days > 1){
+                if($.cookie('cache')){
+                    var cache = JSON.parse($.cookie('cache'));
+                    cache.splice(app.CurrentDay + 2, 1);
+                    $.cookie('cache', JSON.stringify(cache), {expires: 7});
+                }
+                --app.Days;
+                app.CurrentDay == 1 ? console.log() : app.CurrentDay--;
+                loadFromCookie(app.CurrentDay);
+            }
+        },
+        switchToDay:function (n) {
+            nodesLine.hide();
+            saveToCookie(app.CurrentDay);
+            loadFromCookie(n);
+        },
+        switchToPrint:function () {
+            window.open("PrintFile.html", "PrintFile",'location=no,menubar=no,toolbar=no');
         }
     }
 });

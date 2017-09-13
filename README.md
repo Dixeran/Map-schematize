@@ -1,6 +1,6 @@
 Map-schematize 行程规划
 ===
-网址: https://dixeran.github.io/map <br>
+网址: https://dixeran.github.io/Map-schematize/ <br>
 用 Map-schematize 可以计划一整天的行程，得到总体的出行方案和详细的路线规划<br>
 
 开始

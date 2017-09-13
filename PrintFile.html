@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <!--<link rel="stylesheet" href="//cdn.bootcss.com/zui/1.6.0/css/zui.min.css">-->
+    <link rel="stylesheet" href="stylesheets/zui.css">
+    <link rel="stylesheet" href="stylesheets/PrintStyle.css" media="print">
+    <link rel="stylesheet" href="stylesheets/PrintStyle.css">
+</head>
+<body>
+    <div id="container">
+        <h1 class="title">行程规划</h1>
+        <p>{{City}}</p>
+        <p>共 {{Days}} 天 &nbsp;&nbsp;{{dateObj.getFullYear()}}年{{dateObj.getMonth() + 1}}月{{dateObj.getDate()}}日出发</p>
+        <hr>
+        <h2 class="text-muted">由 Map-Schematize 生成</h2>
+        <h1>行程总览</h1>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>日程</th>
+                    <th>当日行程</th>
+                </tr>
+            </thead>
+            <tbody>
+                <template v-for="n in Days">
+                <tr>
+                    <td>
+                        <h1>DAY {{n}}</h1>
+                        <p>{{dateObj.getFullYear()}}-{{dateObj.getMonth() + 1}}-{{dateObj.getDate() + n - 1}}</p>
+                    </td>
+                    <td>
+                        <ul>
+                            <li v-for="item in items[n - 1]">
+                                {{ item.name }}
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+                </template>
+            </tbody>
+        </table>
+        <template v-for="n in Days">
+            <h1>DAY {{n}}</h1>
+            <p>{{dateObj.getFullYear()}}年 {{dateObj.getMonth() + 1}}月 {{dateObj.getDate() + n - 1}}日</p>
+            <hr>
+            <img src="" alt="" class="day_map">
+            <div class="divider"></div>
+            <cite>
+                <code v-for="(item, index) in items[n - 1]">
+                    {{String.fromCharCode(65 + index)}}：{{item.name}}
+                </code>
+            </cite>
+
+            <template v-for="(item, index) in items[n - 1]">
+                <div class="poi">
+                    <div class="headding">
+                        <h2><code>{{String.fromCharCode(65 + index)}}</code>{{item.name}}</h2>
+                        <p>{{item.address}}
+                            <span class="label label-primary label-badge">{{item.type}}</span>
+                            <span class="label label-warning label-badge" v-if="item.scenic">门票{{item.scenic.price}}</span>
+                        </p>
+                        <img src="" alt="">
+                    </div>
+                    <div class="intro">
+                        <h3 v-if="item.dining || item.hotel || item.cinema || item.scenic">简介</h3>
+                        <small v-if="item.dining">{{item.dining.intro}}</small>
+                        <small v-if="item.hotel">{{item.hotel.intro}}</small>
+                        <small v-if="item.cinema">{{item.cinema.intro}}</small>
+                        <small v-if="item.scenic">{{item.scenic.intro}}</small>
+                    </div>
+                    <div class="transfer" v-if="index != (items[n - 1].length - 1)">
+                        <h3>交通信息</h3>
+                        <div class="TR-map" style="width: 17cm;height:5cm;"></div>
+                        <table class="table table-bordered" v-if="transPlan[n - 1]">
+                            <thead>
+                                <tr>
+                                    <th>编号</th>
+                                    <th>花费</th>
+                                    <th>距离</th>
+                                    <th>换乘方案</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template v-for="(path, subIndex) in transPlan[n - 1][index].plans">
+                                <tr v-bind:class="{ active : subIndex==0 }">
+                                    <td>{{subIndex}}</td>
+                                    <td>￥{{path.cost}}</td>
+                                    <td>{{path.distance}}米</td>
+                                    <td>
+                                        <code v-for="subPath in path.segments">{{subPath.instruction}}</code>
+                                    </td>
+                                </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </template>
+
+        </template>
+    </div>
+    <!--<script src="//cdn.bootcss.com/vue/2.2.6/vue.min.js"></script>-->
+    <script src="javascripts/vue.js"></script>
+    <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="javascripts/jquery.cookie.js"></script>
+    <script src="//cdn.bootcss.com/zui/1.6.0/js/zui.min.js"></script>
+    <script type="text/javascript" src="https://webapi.amap.com/maps?v=1.4.0&key=b8b286b57b891b2e0b592575695c6b98"></script>
+    <script type="text/javascript" src="https://webapi.amap.com/ui/1.0/main.js"></script>
+    <script src="javascripts/PrintFile.js"></script>
+</body>
+</html>

@@ -3,6 +3,12 @@
  * Created by Dixeran on 2017/3/30.
  */
 
+window.onload = function () {
+    if($.cookie('cache')){
+        loadFromCookie(1);
+    }
+};
+
 /*jQuery部分*/
 $(document).ready(function () {
     /*检查浏览器*/
@@ -24,6 +30,7 @@ $(document).ready(function () {
         }
     });
 
+
     /*切换搜索城市*/
     $('#city').on('click',function () {
         $('#search-city-container').toggle();
@@ -34,6 +41,8 @@ $(document).ready(function () {
         $('#date').flatpickr({
             onChange: function(selectedDates, dateStr, instance){
                 app.date = dateStr;
+                console.log(selectedDates);
+                app.dateObj = selectedDates[0];
             }
         }).open();
     });
@@ -339,4 +348,132 @@ function initPlan(list) {
     }, 2000);
 }
 
+function saveToCookie(day) {
+    if(!$.cookie('cache')){
+        //不存在之前cache的时候新建cache<应该是第一次新建>
+        var dataId = [];
+        var dataString;
+        dataId.push(app.code);
+        dataId.push(app.dateObj);
+        dataId.push(app.city);
+        var p = dataId.push([]);
+        p = [];
+        for(var i = 0; i<app.items.length; i++){
+            dataId[3].push(app.items[i].id);
+        }
+        dataString = JSON.stringify(dataId);
+        console.log(dataString);
+        $.cookie('cache', dataString, {expires: 7});
+        console.log('first');
+    }
+    else{
+        var dataId = JSON.parse($.cookie('cache'));
+        dataId[0] = app.code;
+        dataId[1] = app.dateObj;
+        dataId[2] = app.city;
+        if(dataId[day + 2]){
+            //当天数据已存在
+            var cache = [];
+            for(var i = 0; i<app.items.length; i++){
+                cache.push(app.items[i].id);
+            }
+            dataId.splice(day + 2, 1, cache);
+            console.log(dataId);
+            $.cookie('cache', JSON.stringify(dataId), {expires: 7});
+        }
+        else{
+            dataId.push([]);
+            for(var i = 0; i<app.items.length; i++){
+                dataId[day + 2].push(app.items[i].id);
+            }
+        }
+    }
+}
 
+function loadFromCookie(day) {
+    if($.cookie('cache')){
+        var list = JSON.parse($.cookie('cache'));
+        console.log(list);
+        app.code = list[0];
+        app.dateObj = new Date(list[1]);
+        app.date = app.dateObj.getFullYear() + "-" + (app.dateObj.getMonth() + 1) + "-" + app.dateObj.getDate();
+        app.city = list[2];
+        app.CurrentDay = day;
+        app.Days = list.length - 3;
+        var searchDetail = new AMap.PlaceSearch({
+            city:app.code,
+            extensions:'all'
+        });//根据文件得到的地址编码获取更详细的信息
+        //var cache = [];
+
+        /*for(var i = 0; i<list[day + 2].length; i++){
+            searchDetail.getDetails(list[day + 2][i], function (status, result) {
+                cache.push(result.poiList.pois[0]);
+                console.log(result.poiList.pois[0].id);
+            });
+        }*/
+
+        //清空原有信息
+        app.items.splice(0, app.items.length);
+        for(var t = 0; t<app.paths.length; t++){
+            app.paths[t].clear();//清除已有的路线
+        }
+        app.paths.splice(0, app.paths.length);
+        for(var t = 0; t<app.markers.length; t++){
+            app.markers[t].hide();//清除已有的标记
+        }
+        app.markers.splice(0, app.markers.length);
+        nodesLine.hide();
+        nodesCircle.hide();
+        console.log("clear");
+
+        var message = new $.zui.Messager('正在导入', {
+            type: 'info',
+            placement: 'center'
+        });
+        message.show();
+
+        /*重构后使用了Generator构造异步的方法，不需要手动设定延迟*/
+        let gre = SearchDetail();
+        gre.next();
+
+        /*搜索详细信息的返回不按顺序，所以要得到所有结果以后进行一次重整*/
+        /*setTimeout(function () {
+            for(var t = 0; t<list[day + 2].length; t++){
+                for(var k = 0; k<cache.length; k++){
+                    if(list[day + 2][t] == cache[k].id){
+                        cache[k].index = app.items.length;
+                        cache[k].method = 'Transfer';
+                        addMarker(cache[k]);
+                        app.items.push(cache[k]);
+                        setCircle();
+                        setPath();
+                        break;
+                    }
+                }
+            }
+            message.hide();
+        }, 2000);*/
+
+        function * SearchDetail() {
+            for(var i = 0; i<list[day + 2].length; i++){
+                yield _SearchDetail(i)
+            }
+            message.hide();
+        }
+
+        function _SearchDetail(index){
+            searchDetail.getDetails(list[day + 2][index], function (status, result) {
+                let cache = result.poiList.pois[0];
+                cache.index = app.items.length;
+                cache.method = 'Transfer';
+                addMarker(cache);
+                app.items.push(cache);
+                setCircle();
+                setPath();
+                console.log(cache.id);
+                gre.next();
+            });
+        }
+    }
+}
