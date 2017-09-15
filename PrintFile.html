@@ -6,7 +6,7 @@
     <!--<link rel="stylesheet" href="//cdn.bootcss.com/zui/1.6.0/css/zui.min.css">-->
     <link rel="stylesheet" href="stylesheets/zui.css">
     <link rel="stylesheet" href="stylesheets/PrintStyle.css" media="print">
-    <link rel="stylesheet" href="stylesheets/PrintStyle.css">
+    <link rel="stylesheet" href="stylesheets/PrintScrean.css">
 </head>
 <body>
     <div id="container">
@@ -98,8 +98,14 @@
                     </div>
                 </div>
             </template>
-
         </template>
+    </div>
+    <div id="hover">
+        <h1>正在生成表单...</h1>
+        <div class="progress">
+            <div class="progress-bar progress-striped animated" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" id="progressBar"></div>
+        </div>
+        <button class="btn btn-primary btn-group-lg disabled" id="print" onclick="window.print()">打印（保存）</button>
     </div>
     <!--<script src="//cdn.bootcss.com/vue/2.2.6/vue.min.js"></script>-->
     <script src="javascripts/vue.js"></script>

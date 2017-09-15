@@ -18,6 +18,7 @@ window.onload = function () {
     vue.City = ParentVue.city;
     vue.dateObj = ParentVue.dateObj;
     AMap.service('AMap.Transfer');
+    $('#progressBar').css('width', '10%');
     SearchAllDays();
 
     function SearchAllDays() {
@@ -44,6 +45,7 @@ window.onload = function () {
                 }
             }
             //TODO: 在异步搜索完成以后的函数调用
+            $('#progressBar').css('width', '40%');
             Day_Map();
             setTimeout(function () {
                 Set_Pic();
@@ -120,32 +122,6 @@ window.onload = function () {
         let cache = 0;
         let nodes = $('.TR-map');
 
-        /*for(let k = 0; k < vue.Days; k++){
-            vue.transPlan.push([]);
-            for(let j = 0; j < (vue.items[k].length - 1); j++){
-                try{
-                    let Tmap = new AMap.Map(nodes[cache], {
-                        zoom:12,
-                        center: [116.480983, 40.0958],
-                        mapStyle:'light'
-                    });
-                    let transfer = new AMap.Transfer({
-                        city: vue.City,
-                        map: Tmap,
-                        extensions:'all'
-                    });
-                    transfer.search([vue.items[k][j].location.getLng(), vue.items[k][j].location.getLat()], [vue.items[k][j + 1].location.getLng(), vue.items[k][j + 1].location.getLat()],function (status, result) {
-                        if(status == "complete"){
-                            vue.transPlan[k].push(result);
-                        }
-                    });
-                    cache++;
-                }catch (err){
-                    console.log(err);
-                }
-            }
-        }*/
-
         let gne = main();
         gne.next();
 
@@ -176,6 +152,11 @@ window.onload = function () {
                     }
                 }
             }
+            $('#progressBar').css('width', '80%');
+            setTimeout(function () {
+                $('#progressBar').css('width', '100%');
+                $('#print').removeClass('disabled');
+            }, 2000)
         }
     }
 };

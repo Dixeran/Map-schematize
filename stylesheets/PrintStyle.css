@@ -69,3 +69,7 @@ code{
 .TR-map{
     width:100%;
 }
+
+#hover{
+    display:none;
+}
