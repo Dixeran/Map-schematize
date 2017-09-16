@@ -21,7 +21,7 @@
             <li v-bind:class="{ active: router == 2 }"><a href="#" v-on:click="router = 2">路径</a></li>
             <li v-bind:class="{ active: router == 3 }"><a href="#" v-on:click="router = 3">关于</a></li>
             <li><a href="#" v-on:click="switchToPrint()">表单</a></li>
-            <li><a href="#" data-toggle="modal" data-target="#file">导入/导出</a></li>
+            <!--<li><a href="#" data-toggle="modal" data-target="#file">导入/导出</a></li>-->
             <li>
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">第{{CurrentDay}}天<span class="caret"></span></a>
                 <ul class="dropdown-menu">
@@ -156,6 +156,7 @@
                     <h4>用Map-schematize规划你出行的路线</h4>
                     <p>作者: Dixeran</p>
                     <p>支持多段路程的混合出行方式算路，给出单个城市内整体流程的出行计划</p>
+                    <p>通过“表单”导出到PDF文件</p>
                     <p>基于高德开放平台API，感谢以下开源库/框架：</p>
                     <p><code>Vue2.x; jQuery; Z UI; sortableJS; Flatpickr; html2canvas; FileSaver</code></p>
                 </div>
